@@ -1,17 +1,280 @@
 "use client";
-import { useEffect, useState } from 'react';
+
+import { useEffect, useState } from "react";
+import {
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+
+const API_URL = "https://api.antimony-labs.com/telemetry?hours=24";
+const REFRESH_INTERVAL_MS = 30_000;
+const STALE_AFTER_SECS = 45;
+
+type TooltipValue = number | string | Array<number | string> | undefined;
 
 export interface NodeTelemetry {
-  hostname: String;
+  hostname: string;
   cpu_usage: number;
   ram_used_mb: number;
   ram_total_mb: number;
-  tailscale_ip: String;
+  load_avg_1m: number;
+  load_avg_5m: number;
+  load_avg_15m: number;
+  uptime_secs: number;
+  disk_used_gb: number;
+  disk_total_gb: number;
+  tailscale_ip: string;
   timestamp_sec: number;
 }
 
+interface TelemetrySampleWire {
+  hostname?: string;
+  cpu_usage?: number;
+  ram_used_mb?: number;
+  ram_total_mb?: number;
+  load_avg_1m?: number;
+  load_avg_5m?: number;
+  load_avg_15m?: number;
+  uptime_secs?: number;
+  disk_used_gb?: number;
+  disk_total_gb?: number;
+  tailscale_ip?: string;
+  timestamp_sec?: number;
+}
+
+interface FleetTelemetryResponse {
+  window_hours: number;
+  generated_at_sec: number;
+  nodes: Record<string, NodeTelemetry[]>;
+}
+
+interface FleetTelemetryWireResponse {
+  window_hours?: number;
+  generated_at_sec?: number;
+  nodes?: Record<string, TelemetrySampleWire[]>;
+}
+
+interface HistoryTooltipPayload {
+  color?: string;
+  dataKey?: string;
+  name?: string;
+  value?: TooltipValue;
+}
+
+interface HistoryTooltipProps {
+  active?: boolean;
+  label?: number | string;
+  payload?: HistoryTooltipPayload[];
+  formatValue?: (value: TooltipValue, name: string) => string;
+}
+
+const decimalFormatter = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 1,
+});
+
+function formatClock(timestampSec: number) {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(timestampSec * 1000);
+}
+
+function formatTooltipDate(label?: number | string) {
+  if (typeof label !== "number") {
+    return "Unknown sample";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(label * 1000);
+}
+
+function formatUptime(totalSeconds: number) {
+  const days = Math.floor(totalSeconds / 86_400);
+  const hours = Math.floor((totalSeconds % 86_400) / 3_600);
+  const minutes = Math.floor((totalSeconds % 3_600) / 60);
+
+  if (days > 0) {
+    return `${days}d ${hours}h`;
+  }
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+
+  return `${minutes}m`;
+}
+
+function formatTooltipMetric(value: TooltipValue, unit = "") {
+  if (Array.isArray(value)) {
+    return value.join(" / ");
+  }
+
+  if (typeof value === "number") {
+    return `${decimalFormatter.format(value)}${unit}`;
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return "n/a";
+}
+
+function normalizeSample(sample: TelemetrySampleWire): NodeTelemetry {
+  return {
+    hostname: sample.hostname ?? "unknown-node",
+    cpu_usage: sample.cpu_usage ?? 0,
+    ram_used_mb: sample.ram_used_mb ?? 0,
+    ram_total_mb: sample.ram_total_mb ?? 0,
+    load_avg_1m: sample.load_avg_1m ?? 0,
+    load_avg_5m: sample.load_avg_5m ?? 0,
+    load_avg_15m: sample.load_avg_15m ?? 0,
+    uptime_secs: sample.uptime_secs ?? 0,
+    disk_used_gb: sample.disk_used_gb ?? 0,
+    disk_total_gb: sample.disk_total_gb ?? 0,
+    tailscale_ip: sample.tailscale_ip ?? "unavailable",
+    timestamp_sec: sample.timestamp_sec ?? Math.floor(Date.now() / 1000),
+  };
+}
+
+function normalizeTelemetryResponse(
+  payload: FleetTelemetryWireResponse | TelemetrySampleWire[],
+): FleetTelemetryResponse {
+  const generatedAtSec = Math.floor(Date.now() / 1000);
+
+  if (Array.isArray(payload)) {
+    const nodes: Record<string, NodeTelemetry[]> = {};
+
+    for (const rawSample of payload) {
+      const sample = normalizeSample(rawSample);
+      const bucket = nodes[sample.hostname] ?? [];
+      bucket.push(sample);
+      bucket.sort((left, right) => left.timestamp_sec - right.timestamp_sec);
+      nodes[sample.hostname] = bucket;
+    }
+
+    return {
+      window_hours: 24,
+      generated_at_sec: generatedAtSec,
+      nodes,
+    };
+  }
+
+  const nodes: Record<string, NodeTelemetry[]> = {};
+
+  for (const [hostname, history] of Object.entries(payload.nodes ?? {})) {
+    nodes[hostname] = history
+      .map((sample) => normalizeSample({ ...sample, hostname: sample.hostname ?? hostname }))
+      .sort((left, right) => left.timestamp_sec - right.timestamp_sec);
+  }
+
+  return {
+    window_hours: payload.window_hours ?? 24,
+    generated_at_sec: payload.generated_at_sec ?? generatedAtSec,
+    nodes,
+  };
+}
+
+function HistoryTooltip({
+  active,
+  label,
+  payload,
+  formatValue,
+}: HistoryTooltipProps) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  return (
+    <div className="chart-tooltip">
+      <div className="chart-tooltip-label">{formatTooltipDate(label)}</div>
+      {payload.map((entry) => {
+        const name = entry.name ?? String(entry.dataKey ?? "metric");
+        return (
+          <div key={name} className="chart-tooltip-row">
+            <span className="chart-tooltip-key">
+              <span
+                className="chart-tooltip-swatch"
+                style={{ background: entry.color ?? "rgba(255,255,255,0.6)" }}
+              />
+              {name}
+            </span>
+            <strong>
+              {formatValue ? formatValue(entry.value, name) : formatTooltipMetric(entry.value)}
+            </strong>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function MetricTile({
+  label,
+  value,
+  detail,
+  progress,
+  accent,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+  progress: number;
+  accent: string;
+}) {
+  return (
+    <div className="metric-tile">
+      <div className="metric-label-row">
+        <span className="text-small">{label}</span>
+        <span className="metric-value">{value}</span>
+      </div>
+      <div className="metric-detail">{detail}</div>
+      <div className="metric-track">
+        <div
+          className="metric-fill"
+          style={{
+            width: `${Math.min(Math.max(progress, 0), 100)}%`,
+            background: accent,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ChartShell({
+  title,
+  caption,
+  children,
+}: {
+  title: string;
+  caption: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="chart-shell">
+      <div className="chart-shell-header">
+        <div>
+          <h4>{title}</h4>
+          <p>{caption}</p>
+        </div>
+      </div>
+      <div className="chart-shell-canvas">{children}</div>
+    </div>
+  );
+}
+
 export default function FleetStatus() {
-  const [telemetry, setTelemetry] = useState<Record<string, NodeTelemetry>>({});
+  const [telemetry, setTelemetry] = useState<FleetTelemetryResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,22 +282,29 @@ export default function FleetStatus() {
 
     const fetchTelemetry = async () => {
       try {
-        const res = await fetch('https://api.antimony-labs.com/telemetry');
-        if (res.ok) {
-          const data = await res.json();
-          if (isSubscribed) {
-            setTelemetry(data);
-            setLoading(false);
-          }
+        const res = await fetch(API_URL, { cache: "no-store" });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        const data = normalizeTelemetryResponse(
+          (await res.json()) as FleetTelemetryWireResponse | TelemetrySampleWire[],
+        );
+        if (isSubscribed) {
+          setTelemetry(data);
+          setLoading(false);
         }
       } catch (err) {
         console.error("Failed to fetch telemetry", err);
+        if (isSubscribed) {
+          setLoading(false);
+        }
       }
     };
 
     fetchTelemetry();
-    const interval = setInterval(fetchTelemetry, 5000);
-    
+    const interval = setInterval(fetchTelemetry, REFRESH_INTERVAL_MS);
+
     return () => {
       isSubscribed = false;
       clearInterval(interval);
@@ -42,58 +312,270 @@ export default function FleetStatus() {
   }, []);
 
   if (loading) {
-    return <div style={{ color: 'var(--text-secondary)', padding: '1rem' }}>Loading fleet telemetry data...</div>;
+    return <div className="fleet-empty-state">Loading 24-hour telemetry history...</div>;
   }
 
-  const nodes = Object.values(telemetry).sort((a, b) => (a.hostname > b.hostname ? 1 : -1));
+  const nodeEntries = Object.entries(telemetry?.nodes ?? {})
+    .filter(([, history]) => history.length > 0)
+    .sort(([left], [right]) => left.localeCompare(right));
 
-  if (nodes.length === 0) {
-    return <div style={{ color: 'var(--warning)', padding: '1rem' }}>No active telemetry signals received yet.</div>;
+  if (nodeEntries.length === 0) {
+    return <div className="fleet-empty-state">No active telemetry signals received yet.</div>;
   }
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {nodes.map(node => {
-        const isStale = (Date.now() / 1000) - node.timestamp_sec > 15;
-        const memoryPercent = (node.ram_used_mb / node.ram_total_mb) * 100;
-        
+    <div className="fleet-stack">
+      <div className="fleet-summary-bar">
+        <div>
+          <span className="fleet-summary-value">{nodeEntries.length}</span>
+          <span className="fleet-summary-label">nodes streaming</span>
+        </div>
+        <div>
+          <span className="fleet-summary-value">{telemetry?.window_hours ?? 24}h</span>
+          <span className="fleet-summary-label">history window</span>
+        </div>
+        <div>
+          <span className="fleet-summary-value">
+            {formatClock(telemetry?.generated_at_sec ?? Math.floor(Date.now() / 1000))}
+          </span>
+          <span className="fleet-summary-label">last API refresh</span>
+        </div>
+      </div>
+
+      {nodeEntries.map(([hostname, history]) => {
+        const latest = history[history.length - 1];
+        const isStale =
+          (telemetry?.generated_at_sec ?? Math.floor(Date.now() / 1000)) - latest.timestamp_sec >
+          STALE_AFTER_SECS;
+        const memoryPercent =
+          latest.ram_total_mb > 0 ? (latest.ram_used_mb / latest.ram_total_mb) * 100 : 0;
+        const diskPercent =
+          latest.disk_total_gb > 0 ? (latest.disk_used_gb / latest.disk_total_gb) * 100 : 0;
+        const chartData = history.map((sample) => ({
+          ...sample,
+          memory_used_gb: sample.ram_used_mb / 1024,
+          memory_percent:
+            sample.ram_total_mb > 0 ? (sample.ram_used_mb / sample.ram_total_mb) * 100 : 0,
+        }));
+        const gradientId = hostname.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+
         return (
-          <div key={`${node.hostname}`} className="glass-card" style={{ padding: '1.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-sm)', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+          <article key={hostname} className="glass-card node-shell">
+            <div className="node-shell-glow" />
+            <div className="node-header">
+              <div>
+                <div className="node-title-row">
+                  <h3>{hostname}</h3>
+                  <span className={`node-status-pill ${isStale ? "stale" : "live"}`}>
+                    {isStale ? "degraded" : "live"}
+                  </span>
                 </div>
-                <div>
-                  <div style={{ fontWeight: 500, fontSize: '1.05rem', color: isStale ? 'var(--text-secondary)' : '#fff' }}>{node.hostname}</div>
-                  <div className="text-small" style={{ fontFamily: 'monospace' }}>{node.tailscale_ip}</div>
+                <div className="node-subtitle">
+                  <span>{latest.tailscale_ip}</span>
+                  <span>{history.length} samples</span>
+                  <span>uptime {formatUptime(latest.uptime_secs)}</span>
                 </div>
               </div>
-              <span className={`status-dot ${isStale ? '' : 'online'}`} style={isStale ? { backgroundColor: 'var(--warning)', boxShadow: 'none' } : {}}></span>
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                  <span className="text-small">CPU Usage</span>
-                  <span className="text-small" style={{ fontWeight: 500 }}>{node.cpu_usage.toFixed(1)}%</span>
+
+              <div className="node-meta-grid">
+                <div className="node-meta-tile">
+                  <span className="text-small">Last sample</span>
+                  <strong>{formatClock(latest.timestamp_sec)}</strong>
                 </div>
-                <div style={{ height: 4, background: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${Math.min(node.cpu_usage, 100)}%`, background: node.cpu_usage > 90 ? 'var(--error, #ff4c4c)' : node.cpu_usage > 70 ? 'var(--warning, #f5a623)' : 'var(--success)' }}></div>
-                </div>
-              </div>
-              
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                  <span className="text-small">Memory</span>
-                  <span className="text-small" style={{ fontWeight: 500 }}>{(node.ram_used_mb / 1024).toFixed(1)}GB / {(node.ram_total_mb / 1024).toFixed(1)}GB</span>
-                </div>
-                <div style={{ height: 4, background: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${Math.min(memoryPercent, 100)}%`, background: memoryPercent > 90 ? 'var(--error, #ff4c4c)' : memoryPercent > 70 ? 'var(--warning, #f5a623)' : 'var(--success)' }}></div>
+                <div className="node-meta-tile">
+                  <span className="text-small">Load 1m</span>
+                  <strong>{decimalFormatter.format(latest.load_avg_1m)}</strong>
                 </div>
               </div>
             </div>
-          </div>
+
+            <div className="metric-grid">
+              <MetricTile
+                label="CPU Utilization"
+                value={`${decimalFormatter.format(latest.cpu_usage)}%`}
+                detail="instantaneous core pressure"
+                progress={latest.cpu_usage}
+                accent="linear-gradient(90deg, #60a5fa 0%, #22d3ee 100%)"
+              />
+              <MetricTile
+                label="Memory Footprint"
+                value={`${decimalFormatter.format(latest.ram_used_mb / 1024)} GB`}
+                detail={`${decimalFormatter.format(memoryPercent)}% of ${decimalFormatter.format(
+                  latest.ram_total_mb / 1024,
+                )} GB`}
+                progress={memoryPercent}
+                accent="linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%)"
+              />
+              <MetricTile
+                label="Disk Occupancy"
+                value={`${decimalFormatter.format(latest.disk_used_gb)} GB`}
+                detail={`${decimalFormatter.format(diskPercent)}% of ${decimalFormatter.format(
+                  latest.disk_total_gb,
+                )} GB`}
+                progress={diskPercent}
+                accent="linear-gradient(90deg, #f59e0b 0%, #f97316 100%)"
+              />
+            </div>
+
+            <div className="chart-grid">
+              <ChartShell title="CPU" caption="Monotone utilization curve">
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={chartData}>
+                    <defs>
+                      <linearGradient id={`cpu-line-${gradientId}`} x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#7dd3fc" />
+                        <stop offset="100%" stopColor="#3b82f6" />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      dataKey="timestamp_sec"
+                      tickFormatter={formatClock}
+                      minTickGap={28}
+                      tickLine={false}
+                      axisLine={false}
+                      stroke="rgba(255,255,255,0.34)"
+                    />
+                    <YAxis
+                      domain={[0, 100]}
+                      tickFormatter={(value) => `${value}%`}
+                      tickLine={false}
+                      axisLine={false}
+                      width={44}
+                      stroke="rgba(255,255,255,0.34)"
+                    />
+                    <Tooltip
+                      cursor={{ stroke: "rgba(125, 211, 252, 0.16)", strokeWidth: 1 }}
+                      content={
+                        <HistoryTooltip
+                          formatValue={(value) => formatTooltipMetric(value, "%")}
+                        />
+                      }
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="cpu_usage"
+                      name="CPU"
+                      stroke={`url(#cpu-line-${gradientId})`}
+                      strokeWidth={3}
+                      dot={false}
+                      activeDot={{ r: 5, fill: "#dff8ff", stroke: "#60a5fa", strokeWidth: 2 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartShell>
+
+              <ChartShell title="Memory" caption="Used memory over time">
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={chartData}>
+                    <defs>
+                      <linearGradient id={`memory-line-${gradientId}`} x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#f0abfc" />
+                        <stop offset="100%" stopColor="#8b5cf6" />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      dataKey="timestamp_sec"
+                      tickFormatter={formatClock}
+                      minTickGap={28}
+                      tickLine={false}
+                      axisLine={false}
+                      stroke="rgba(255,255,255,0.34)"
+                    />
+                    <YAxis
+                      tickFormatter={(value) => `${decimalFormatter.format(value)} GB`}
+                      tickLine={false}
+                      axisLine={false}
+                      width={56}
+                      stroke="rgba(255,255,255,0.34)"
+                    />
+                    <Tooltip
+                      cursor={{ stroke: "rgba(240, 171, 252, 0.16)", strokeWidth: 1 }}
+                      content={
+                        <HistoryTooltip
+                          formatValue={(value) => formatTooltipMetric(value, " GB")}
+                        />
+                      }
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="memory_used_gb"
+                      name="Used"
+                      stroke={`url(#memory-line-${gradientId})`}
+                      strokeWidth={3}
+                      dot={false}
+                      activeDot={{ r: 5, fill: "#fff0ff", stroke: "#d946ef", strokeWidth: 2 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartShell>
+
+              <ChartShell title="Load Average" caption="1m, 5m, and 15m smoothing">
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={chartData}>
+                    <defs>
+                      <linearGradient id={`load-1-${gradientId}`} x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#fbbf24" />
+                        <stop offset="100%" stopColor="#f97316" />
+                      </linearGradient>
+                      <linearGradient id={`load-5-${gradientId}`} x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#4ade80" />
+                        <stop offset="100%" stopColor="#14b8a6" />
+                      </linearGradient>
+                      <linearGradient id={`load-15-${gradientId}`} x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#c084fc" />
+                        <stop offset="100%" stopColor="#6366f1" />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      dataKey="timestamp_sec"
+                      tickFormatter={formatClock}
+                      minTickGap={28}
+                      tickLine={false}
+                      axisLine={false}
+                      stroke="rgba(255,255,255,0.34)"
+                    />
+                    <YAxis
+                      tickLine={false}
+                      axisLine={false}
+                      width={40}
+                      stroke="rgba(255,255,255,0.34)"
+                    />
+                    <Tooltip
+                      cursor={{ stroke: "rgba(251, 191, 36, 0.16)", strokeWidth: 1 }}
+                      content={<HistoryTooltip />}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="load_avg_1m"
+                      name="1m"
+                      stroke={`url(#load-1-${gradientId})`}
+                      strokeWidth={2.6}
+                      dot={false}
+                      activeDot={{ r: 4, fill: "#fff7ed", stroke: "#f59e0b", strokeWidth: 2 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="load_avg_5m"
+                      name="5m"
+                      stroke={`url(#load-5-${gradientId})`}
+                      strokeWidth={2.6}
+                      dot={false}
+                      activeDot={{ r: 4, fill: "#ecfeff", stroke: "#14b8a6", strokeWidth: 2 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="load_avg_15m"
+                      name="15m"
+                      stroke={`url(#load-15-${gradientId})`}
+                      strokeWidth={2.6}
+                      dot={false}
+                      activeDot={{ r: 4, fill: "#eef2ff", stroke: "#6366f1", strokeWidth: 2 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartShell>
+            </div>
+          </article>
         );
       })}
     </div>

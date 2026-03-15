@@ -1,33 +1,64 @@
 "use client";
-import { useEffect, useState } from 'react';
+
+import { useEffect, useState } from "react";
+
+type ApiState = "checking" | "online" | "offline";
+
+interface HealthResponse {
+  repository: string;
+  status: string;
+  version: string;
+}
+
+const API_HEALTH_URL = "https://api.antimony-labs.com/health";
+const HEALTH_REFRESH_INTERVAL_MS = 20_000;
+
+function formatCheckTime(timestamp: number | null) {
+  if (!timestamp) {
+    return "Awaiting first response";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(timestamp);
+}
 
 export default function ApiStatus() {
-  const [status, setStatus] = useState<'checking' | 'online' | 'offline'>('checking');
-  const [version, setVersion] = useState<string>('');
+  const [status, setStatus] = useState<ApiState>("checking");
+  const [version, setVersion] = useState("");
+  const [repository, setRepository] = useState("antimony-labs/core");
+  const [lastCheckedAt, setLastCheckedAt] = useState<number | null>(null);
 
   useEffect(() => {
     let isSubscribed = true;
 
     const checkHealth = async () => {
       try {
-        const res = await fetch('https://api.antimony-labs.com/health');
-        if (res.ok) {
-          const data = await res.json();
-          if (isSubscribed) {
-            setStatus('online');
-            setVersion(data.version || '');
-          }
-        } else {
-          if (isSubscribed) setStatus('offline');
+        const res = await fetch(API_HEALTH_URL, { cache: "no-store" });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
         }
-      } catch (err) {
-        if (isSubscribed) setStatus('offline');
+
+        const data: HealthResponse = await res.json();
+        if (isSubscribed) {
+          setStatus(data.status === "online" ? "online" : "offline");
+          setRepository(data.repository || "antimony-labs/core");
+          setVersion(data.version || "");
+          setLastCheckedAt(Date.now());
+        }
+      } catch {
+        if (isSubscribed) {
+          setStatus("offline");
+          setLastCheckedAt(Date.now());
+        }
       }
     };
 
     checkHealth();
-    const interval = setInterval(checkHealth, 5000);
-    
+    const interval = setInterval(checkHealth, HEALTH_REFRESH_INTERVAL_MS);
+
     return () => {
       isSubscribed = false;
       clearInterval(interval);
@@ -35,17 +66,36 @@ export default function ApiStatus() {
   }, []);
 
   return (
-    <div className="glass-panel" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', borderRadius: 'var(--radius-xl)', gap: '0.75rem', transition: 'all 0.3s ease' }}>
-      <span 
-        className={status === 'online' ? 'status-dot online' : 'status-dot'} 
-        style={{ 
-          backgroundColor: status === 'checking' ? 'var(--text-secondary)' : status === 'offline' ? 'var(--error, #ff4c4c)' : undefined,
-          boxShadow: status === 'online' ? '0 0 10px var(--success)' : status === 'offline' ? '0 0 10px var(--error, #ff4c4c)' : 'none'
-        }}
-      ></span>
-      <span className="text-small" style={{ fontWeight: 500, color: '#fff' }}>
-        core-api : {status === 'checking' ? 'Checking...' : status === 'online' ? `v${version}` : 'Offline'}
-      </span>
+    <div className="glass-panel api-status-shell">
+      <div className="api-status-main">
+        <span
+          className={`status-dot ${status === "online" ? "online" : ""}`}
+          style={{
+            backgroundColor:
+              status === "checking"
+                ? "rgba(255,255,255,0.45)"
+                : status === "offline"
+                  ? "var(--danger)"
+                  : undefined,
+            boxShadow:
+              status === "online"
+                ? "0 0 14px rgba(52, 211, 153, 0.6)"
+                : status === "offline"
+                  ? "0 0 14px rgba(239, 68, 68, 0.55)"
+                  : "none",
+          }}
+        />
+        <div>
+          <div className="api-status-title">
+            <strong>{repository}</strong>
+            <span className={`api-status-badge ${status}`}>{status}</span>
+          </div>
+          <div className="api-status-meta">
+            <span>{version ? `v${version}` : "version pending"}</span>
+            <span>{formatCheckTime(lastCheckedAt)}</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
