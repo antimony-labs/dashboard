@@ -1,4 +1,5 @@
 import ApiStatus from '@/components/ApiStatus';
+import FleetStatus from '@/components/FleetStatus';
 
 export default function Home() {
   return (
@@ -41,41 +42,8 @@ export default function Home() {
       {/* Main Content Area */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', flex: 1 }}>
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', fontWeight: 500 }}>Active Deployments</h3>
-          
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {/* Mock Item 1 */}
-            <div className="glass-card" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-sm)', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-                </div>
-                <div>
-                  <div style={{ fontWeight: 500, fontSize: '1.05rem' }}>e51.org</div>
-                  <div className="text-small">Production | Cloudflare Pages</div>
-                </div>
-              </div>
-              <span className="status-dot online"></span>
-            </div>
-
-            {/* Mock Item 2 */}
-            <div className="glass-card" style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-sm)', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
-                </div>
-                <div>
-                  <div style={{ fontWeight: 500, fontSize: '1.05rem' }}>fleet-core</div>
-                  <div className="text-small">API | sbl4 (Rust Axum)</div>
-                </div>
-              </div>
-              <span className="status-dot online"></span>
-            </div>
-            
-            <div style={{ marginTop: 'auto', textAlign: 'center', paddingTop: '1rem' }}>
-              <a href="#" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', textDecoration: 'none' }}>+ Deploy New Project</a>
-            </div>
-          </div>
+          <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', fontWeight: 500 }}>Live Fleet Telemetry</h3>
+          <FleetStatus />
         </div>
 
         <div className="glass-panel" style={{ padding: '2rem' }}>
