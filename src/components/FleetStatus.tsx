@@ -10,7 +10,9 @@ import {
   YAxis,
 } from "recharts";
 
-const API_URL = "https://api.antimony-labs.com/telemetry?hours=24";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_FLEET_API_BASE_URL ?? "https://api.antimony-labs.com";
+const API_URL = `${API_BASE_URL}/telemetry?hours=24`;
 const REFRESH_INTERVAL_MS = 30_000;
 const STALE_AFTER_SECS = 45;
 

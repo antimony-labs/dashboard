@@ -10,7 +10,9 @@ interface HealthResponse {
   version: string;
 }
 
-const API_HEALTH_URL = "https://api.antimony-labs.com/health";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_FLEET_API_BASE_URL ?? "https://api.antimony-labs.com";
+const API_HEALTH_URL = `${API_BASE_URL}/health`;
 const HEALTH_REFRESH_INTERVAL_MS = 20_000;
 
 function formatCheckTime(timestamp: number | null) {
