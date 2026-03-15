@@ -1,3 +1,5 @@
+import ApiStatus from '@/components/ApiStatus';
+
 export default function Home() {
   return (
     <>
@@ -6,10 +8,7 @@ export default function Home() {
           <h2 className="title">System Overview</h2>
           <p className="subtitle" style={{ marginTop: '0.25rem' }}>Real-time telemetry and ecosystem state.</p>
         </div>
-        <div className="glass-panel" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', borderRadius: 'var(--radius-xl)' }}>
-          <span className="status-dot online"></span>
-          <span className="text-small" style={{ fontWeight: 500, color: '#fff' }}>core-api : Connected</span>
-        </div>
+        <ApiStatus />
       </header>
 
       {/* Metric Cards Grid */}
