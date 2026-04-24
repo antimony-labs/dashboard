@@ -437,8 +437,8 @@ export const operatingNodes = [
   {
     id: "openclaw",
     role: "Discord control plane",
-    signal: "token pending",
-    state: "staged",
+    signal: "gateway running on 127.0.0.1:18789; Discord bot @Krishna connected",
+    state: "online",
   },
   {
     id: "api",
@@ -481,9 +481,9 @@ export const machineFacts = [
   },
   {
     label: "OpenClaw gateway",
-    value: "vault-ready / inactive",
-    detail: "wrappers now pull Discord and gateway tokens from sbl0 vault",
-    state: "staged",
+    value: "enabled / active",
+    detail: "Discord gateway runs on loopback port 18789 through sbl0 vault tokens",
+    state: "online",
   },
   {
     label: "Secret source",
@@ -511,8 +511,8 @@ github	github-token	sbl0 vault	no local file	repo_policy.py	2026-04-23
 llm	sbl0-moonshot-api-key	sbl0 vault	no local file	kimi / kimi-cli	2026-04-21
 sbl1	sbl1-krishna-groq-api-key	sbl0 vault	no local file	krishna/sbl1	2026-03-08
 sbl1	sbl1-krishna-xai-api-key	sbl0 vault	no local file	krishna/sbl1	2026-03-08
-sbl1	sbl1-openclaw-discord-token	sbl0 vault	no local file	openclaw-discord-gateway	2026-03-08
-sbl1	sbl1-openclaw-gateway-token	sbl0 vault	no local file	openclaw-discord-gateway	2026-03-08
+sbl1	sbl1-openclaw-discord-token	sbl0 vault	no local file	openclaw-discord-gateway	2026-04-23
+sbl1	sbl1-openclaw-gateway-token	sbl0 vault	no local file	openclaw-discord-gateway	2026-04-23
 sbl1	sbl1-openclaw-ollama-api-key	sbl0 vault	no local file	openclaw/sbl1	2026-03-08
 sbl3	sbl3-openclaw-auth-anthropic-token	sbl0 vault	no local file	openclaw/sbl3	2026-03-07
 sbl3	sbl3-openclaw-auth-xai-api-key	sbl0 vault	no local file	openclaw/sbl3	2026-03-07
@@ -813,6 +813,30 @@ export const shortcutInventory = [
     command: "systemctl --user status antimony-dashboard-local.service",
     use: "Shows whether the LAN dashboard service is active and where it is running from.",
     example: "systemctl --user --no-pager --plain status antimony-dashboard-local.service",
+    state: "safe",
+  },
+  {
+    group: "openclaw",
+    name: "OpenClaw status",
+    command: "openclaw-discord-status",
+    use: "Checks gateway, Discord provider, token injection, and current OpenClaw health without printing secrets.",
+    example: "~/bin/openclaw-discord-status",
+    state: "safe",
+  },
+  {
+    group: "openclaw",
+    name: "Restart OpenClaw",
+    command: "systemctl --user restart openclaw-gateway.service",
+    use: "Restarts the local Discord gateway after config, token, or OpenClaw runtime changes.",
+    example: "systemctl --user restart openclaw-gateway.service && ~/bin/openclaw-discord-status",
+    state: "guarded",
+  },
+  {
+    group: "openclaw",
+    name: "OpenClaw logs",
+    command: "journalctl --user -u openclaw-gateway.service -f",
+    use: "Tails live gateway logs for Discord connection, WebSocket, agent, and browser-service events.",
+    example: "journalctl --user -u openclaw-gateway.service --since '10 minutes ago' --no-pager",
     state: "safe",
   },
   {
