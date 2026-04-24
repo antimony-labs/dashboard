@@ -1,0 +1,28 @@
+# kind	key	value	notes
+tile	my-mantra	5	Personal mantras and decision priorities
+tile	llm-mantra	10	LLM checks and operating DNA
+tile	projects	20	Program/project management
+tile	infra	30	Machine, domains, secrets, shortcuts, and access
+tile	telemetry	40	Fleet health and machine signals
+tile	openclaw	50	Dashboard chatbot for OpenClaw
+tile	secrets	90	Merged into infra
+tile	shortcuts	91	Merged into infra
+tile	machine	92	Merged into infra
+tile	domains	93	Merged into infra
+tile	rebuild	94	Moved into projects
+tile	next	80	Next actions
+visible	my-mantra	true	Show tile
+visible	llm-mantra	true	Show tile
+visible	projects	true	Show tile
+visible	infra	true	Show merged infrastructure tile
+visible	telemetry	true	Show tile
+visible	openclaw	true	Show tile
+visible	secrets	false	Merged into infra
+visible	shortcuts	false	Merged into infra
+visible	machine	false	Merged into infra
+visible	domains	false	Merged into infra
+visible	rebuild	false	Moved into projects
+visible	next	false	Replaced by program/project lens and OpenClaw chat
+setting	defaultPanel	none	none means launcher only
+setting	mobilePolicy	compact-groups	Group long lists and hide secondary detail on phone
+setting	refreshButton	true	Show top reload button

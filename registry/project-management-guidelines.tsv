@@ -1,0 +1,10 @@
+# group	priority	rule	why	state
+program	1	Start with outcome, not repository state.	Repo state is evidence, not the product decision.	protected
+program	2	Keep one active bet visible and sequence everything else.	Reduces context switching and makes the next few hours obvious.	protected
+program	3	Group projects by decision lane: build, decide, consolidate, park.	Portfolio state should answer what kind of attention each project needs.	active
+llm	1	Act as a development partner: surface choices, risks, and next actions.	The LLM should help steer the work, not only report facts.	protected
+llm	2	Show only the first useful reminder in the board; keep deeper notes in structured data.	Phone view needs signal before completeness.	active
+llm	3	When the panel feels chaotic, remove categories before adding more UI.	Simpler mental models beat denser dashboards.	protected
+product	1	Public surfaces should ladder up to one product story.	too.foo, e51, portfolio, and Kaggle should not fragment the vision.	active
+product	2	Machine rebuild is a project with outcomes, risks, and sequencing.	Cleanup work should not appear as random chores.	active
+product	3	Vendor/lab work should be parked unless it becomes a deliberate product bet.	Dependencies and experiments should not compete with active platform work.	active

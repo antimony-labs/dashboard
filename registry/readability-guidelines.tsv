@@ -1,0 +1,13 @@
+# group	priority	rule	why	state
+contrast	1	Primary text must strongly contrast against the actual card surface, not only the page background.	Most dashboard reading happens inside translucent tiles.	protected
+contrast	2	Secondary text must remain readable on a phone without squinting; do not use decorative gray for operational facts.	Project paths, TODOs, and notes carry real state.	protected
+contrast	3	Status pills need both color and enough text contrast; color alone is not the information.	Phone screens and tired eyes make low-saturation badges fail.	active
+typography	1	Use one expressive readable family, but keep body text at normal weights and avoid ultra-light text for facts.	Thin text looks premium on desktop and weak on mobile.	active
+typography	2	Use at least 1.3 line-height for dense card text and 1.4 or higher for paragraphs.	Compact does not mean cramped.	active
+typography	3	Clamp long descriptions and expose detail on tap instead of shrinking text below readable size.	Information hierarchy beats tiny text.	active
+layout	1	Favor tiles with strong title, compact facts, and a short memory section over row-heavy layouts.	Tiles fit the dashboard philosophy and scan faster.	active
+layout	2	Avoid horizontal scroll at phone width; use one-column cards or focused overlays.	The phone is the primary review surface.	protected
+layout	3	Use borders, shadows, and surface opacity to separate cards before adding more text.	Visual grouping should reduce cognitive load.	active
+llm	1	When changing visuals, update theme tokens, affected components, and contrast tests together.	Prevents one-off fixes that regress later.	protected
+llm	2	Write durable UI preferences into TSV registries, not Markdown notes.	Keeps future LLM turns fast and machine-readable.	protected
+llm	3	After visual edits, run the full check gate and restart the local dashboard service.	Phone review should always see verified output.	active

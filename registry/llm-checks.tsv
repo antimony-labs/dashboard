@@ -1,0 +1,21 @@
+# group	name	check	why	state
+context	Read current state	Inspect the relevant files, services, and registry before editing.	Prevents stale assumptions and protects user changes.	active
+context	Exclude backups by default	Do not broad-search backups unless the task is specifically about backup content.	Archived logs may contain secrets and high-noise generated state.	protected
+context	Trust structured registries	Prefer config/*.tsv and dashboard data before prose files.	Small records are faster for LLMs and easier to diff.	active
+edits	Use apply_patch for manual edits	Manual source edits must go through apply_patch.	Preserves intentional diffs and avoids accidental file rewrites.	active
+edits	Respect dirty worktrees	Check git status and never revert unrelated user edits.	The machine is actively evolving and may contain user work.	protected
+edits	Update source plus UI	When changing process state, update structured data and the dashboard surface.	The phone view should match the machine.	active
+safety	No secret values in UI	Show names, consumers, source, and timestamps only.	Secrets stay encrypted on sbl0 and injected at process launch.	protected
+safety	Dry-run before destructive action	Cleanup scripts must default to dry-run and require explicit apply/delete.	Backups and migrations are expensive to reconstruct.	protected
+safety	No blind deletes	Delete only after classification or explicit user approval.	Organization must not become data loss.	protected
+mobile	No sideways scroll	Top-level and panel layouts must fit the phone width.	Phone is the review surface.	active
+mobile	Compact grouped rows	Group long lists by scope and collapse repeated labels.	Improves scan speed and reduces scrolling.	active
+mobile	Tap for details	Launcher stays small; details live in focused overlays.	Keeps the home screen stable and simple.	active
+readability	Theme contrast	Primary, secondary, and tertiary text tokens must pass contrast checks in light and dark themes.	Visual polish cannot weaken operational readability.	protected
+readability	Readable facts	Do not use decorative gray or ultra-light weight for project facts, paths, TODOs, or state labels.	Dense phone tiles need fast scanning.	protected
+readability	Clamp not shrink	Clamp long text and reveal detail on tap instead of shrinking fonts below readable sizes.	Information hierarchy beats tiny text.	active
+deployment	Build before restart	Run lint and build before restarting a dashboard service.	Catches TypeScript and static export errors before deploy.	active
+deployment	Verify endpoint	Check HTTP 200 after service restart.	Confirms phone-facing LAN deployment is actually serving.	active
+projects	Source/generated boundary	Classify source, generated, cache, runtime, and archive before moving.	Keeps rebuilds possible and project roots clean.	active
+projects	Promote repeated commands	If a command is useful twice, add it to Shortcuts.	Builds operational memory without Markdown.	active
+communication	Concrete final state	Report what changed, what was verified, and what remains risky.	Keeps collaboration actionable.	active

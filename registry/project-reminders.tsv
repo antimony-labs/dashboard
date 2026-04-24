@@ -1,0 +1,42 @@
+# project	priority	comment
+dashboard	1	Current dashboard work is uncommitted; commit after the tile/infra redesign settles.
+dashboard	2	Keep phone layout as the source of truth; avoid wide desktop-only decisions.
+dashboard	3	Next technical step is generated dashboard state from config TSV files.
+dashboard	4	Remote access should use auth proxy/tunnel without breaking local hot reload.
+core	1	Remote repo exists but is not cloned on sbl1.
+core	2	Decide whether this becomes the platform API gateway or stays empty.
+core	3	Clone only after dashboard/product surface decisions are clearer.
+fleet	1	Remote repo exists but no local checkout is active.
+fleet	2	Should become machine signals and service health feed for the dashboard.
+fleet	3	Define minimal telemetry before building agents around it.
+e51	1	Public repo exists; local source is not consolidated.
+e51	2	Clarify relationship between e51.org and too.foo before investing.
+e51	3	Treat as product surface, not infrastructure.
+magnetism-mc-api	1	Dirty local repo; inspect changes before moving more screenshot/service logic.
+magnetism-mc-api	2	Screenshot sync paths were moved and service currently depends on this project.
+magnetism-mc-api	3	Decide whether screenshot bridge should live here or in its own package.
+second-brain	1	Parent repo has imported sbl2 directories; classify nested repos before committing.
+second-brain	2	Keep PWA/knowledge-system direction separate from archive absorption.
+second-brain	3	Books and secondbrain nested repos need ownership decisions.
+books	1	Local branch is ahead by 8 commits; resolve before major consolidation.
+books	2	Token/repo access is restricted; fix auth before pushing.
+books	3	Treat as creative engine with explicit source/generated boundaries.
+s3m2p	1	Large dirty public workspace; identify current active app before cleanup.
+s3m2p	2	Contains personal-data-organizer manifests; avoid broad searches if not needed.
+s3m2p	3	Decide what belongs on personal GitHub vs Antimony platform.
+content.too.foo	1	Fetch blocked with current credentials; fix GitHub access.
+content.too.foo	2	Separate generated renders/assets from source decisions.
+content.too.foo	3	This likely becomes too.foo content/app garden pipeline.
+kaggle	1	Largest workspace at 62G; classify competitions vs reusable code.
+kaggle	2	Kaggle secrets need re-entry into sbl0 vault.
+kaggle	3	Avoid committing datasets or generated notebooks by accident.
+nasa-trajectory-explorer	1	Local Rust project has no upstream; decide publish/archive path.
+nasa-trajectory-explorer	2	Small enough to clean and make canonical quickly.
+vast-model-lab	1	Local non-git lab; decide whether it should become a repo.
+vast-model-lab	2	Keep evaluation results separate from source code.
+stretch_isaac_sim	1	Local sim assets and venv; classify source assets vs rebuildable environment.
+stretch_isaac_sim	2	Decide whether this belongs under robotics workspace or Antimony labs.
+IsaacLab	1	Third-party vendor checkout; keep clean and avoid local edits.
+IsaacLab	2	Use as dependency/reference, not a project to own.
+stable-diffusion-webui	1	Third-party vendor checkout with one local change.
+stable-diffusion-webui	2	Capture the local change purpose or reset only with explicit approval.

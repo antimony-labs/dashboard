@@ -1,0 +1,7 @@
+# surface	order	purpose	primary_question	state
+my-mantra	1	Personal decision layer for taste, ease, security, and life management.	What do I believe and want to optimize for?	protected
+llm-mantra	2	Operating contract for LLM partners and automation.	How should agents behave with me and this machine?	protected
+projects	3	Product/program management for outcomes, bets, decisions, and sequencing.	What deserves attention next and why?	protected
+infra	4	Hardware, domains, secrets metadata, shortcuts, and access routes.	What does the system depend on?	protected
+telemetry	5	Live evidence layer for fleet health and machine pressure.	What is happening right now?	active
+openclaw	6	Chat interface for the OpenClaw control plane.	How do I talk to the system directly?	active

@@ -1,0 +1,16 @@
+# group	name	path	remote	notes
+antimony-labs	dashboard	/home/curious/antimony-labs-org	https://github.com/antimony-labs/dashboard.git	phone-first dashboard; service runs locally on LAN
+antimony-labs	magnetism-mc-api	/home/curious/workspace/antimony-labs-org-nondashboard-20260423-185551/projects/antimony-labs/magnetism-mc-api	https://github.com/antimony-labs/magnetism-mc-api.git	core API/UI; dirty at umbrella setup
+antimony-labs	second-brain	/home/curious/workspace/antimony-labs-org-nondashboard-20260423-185551/projects/antimony-labs/second-brain	git@github.com:antimony-labs/second-brain.git	active second-brain worktree; has untracked sbl2 imports
+antimony-labs	books	/home/curious/workspace/antimony-labs-org-nondashboard-20260423-185551/projects/antimony-labs/second-brain/sbl2_books	https://github.com/antimony-labs/books.git	books repo; dirty at umbrella setup
+antimony-labs	dotfiles	/home/curious/workspace/antimony-labs-org-nondashboard-20260423-185551/dotfiles	none	local shell/dotfile source
+personal	s3m2p	/home/curious/workspace/s3m2p	git@github.com:Shivam-Bhardwaj/s3m2p.git	personal app/research workspace; dirty at umbrella setup
+personal	kaggle	/home/curious/workspace/kaggle	git@github.com:Shivam-Bhardwaj/kaggle.git	kaggle dashboard and competition tooling; dirty at umbrella setup
+personal	content.too.foo	/home/curious/workspace/content.too.foo	https://github.com/Shivam-Bhardwaj/content.too.foo.git	content rendering/generation; dirty at umbrella setup
+personal	nasa-trajectory-explorer	/home/curious/workspace/nasa-trajectory-explorer	none	local rust project; no commits yet at umbrella setup
+ai-ml	IsaacLab	/home/curious/workspace/vendor/IsaacLab	https://github.com/isaac-sim/IsaacLab.git	upstream IsaacLab clone
+ai-ml	stable-diffusion-webui	/home/curious/workspace/vendor/stable-diffusion-webui	https://github.com/AUTOMATIC1111/stable-diffusion-webui.git	upstream webui clone; local webui-user.sh modified
+labs	vast-model-lab	/home/curious/workspace/vast-model-lab	none	python lab; not a git repo at umbrella setup
+labs	stretch_isaac_sim	/home/curious/workspace/stretch_isaac_sim	none	local sim work; not a git repo at umbrella setup
+archive	sbl2-secondbrain	/home/curious/workspace/antimony-labs-org-nondashboard-20260423-185551/backups/sbl2-archive-reference/secondbrain	git@github.com:antimony-labs/second-brain.git	archive duplicate/reference worktree
+archive	sbl0-vault	/home/curious/workspace/antimony-labs-org-nondashboard-20260423-185551/projects/archive/sbl0-vault	none	local vault/server snapshot

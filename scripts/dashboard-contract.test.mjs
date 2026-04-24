@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 const repoRoot = new URL("../", import.meta.url);
-const configRoot = new URL("/home/curious/antimony-labs-org/config/", import.meta.url);
+const configRoot = new URL("registry/", repoRoot);
 
 const readText = (url) => readFileSync(url, "utf8");
 

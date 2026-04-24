@@ -1,0 +1,11 @@
+# priority	group	name	mantra	prompt	state
+1	aesthetics	Intentional beauty	Make every surface feel chosen, not generated.	Does this have a visual point of view or is it just filling space?	active
+2	ease	Phone cockpit	If it cannot be understood on the phone in ten seconds, compress it.	What can be grouped, hidden, or revealed only on tap?	active
+3	security	Protected by default	Metadata can be visible; sensitive values stay encrypted and injected only when needed.	Are we showing names and usage without exposing the secret?	protected
+4	llm	Structured truth	Facts belong in small records that LLMs can diff, update, and reason over.	Is this a stable field or a paragraph pretending to be state?	active
+5	projects	Source before archive	Source, generated output, runtime, cache, and archive must be separate.	What category is this item before we move or delete it?	active
+6	workflow	Small reversible moves	Prefer small changes with verification over big reorganizations.	Can this be undone or audited later?	active
+7	psychology	Reduce cognitive load	The system should make the next good decision obvious.	What anxiety or ambiguity can this UI remove?	active
+8	ambition	One app mindset	Assume teaching, learning, building, maintaining, and publishing can converge.	Does this make the platform more unified or more fragmented?	active
+9	automation	Agents need rails	LLMs should have strong rules, compact context, and safe defaults.	What guardrail prevents the agent from doing the wrong impressive thing?	active
+10	taste	No generic slop	If it looks or reads like a template, sharpen the opinion.	What would make this unmistakably ours?	active
