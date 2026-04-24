@@ -298,6 +298,38 @@ test("home typography uses semantic theme colors", () => {
   );
 });
 
+test("layout rhythm uses spacing and radius tokens", () => {
+  const cssSource = readText(new URL("src/app/globals.css", repoRoot));
+  const layoutDeclarations = [
+    ...cssSource.matchAll(
+      /\b(?<property>padding(?:-(?:top|right|bottom|left)|-inline|-block)?|margin(?:-(?:top|right|bottom|left)|-inline|-block)?|gap|row-gap|column-gap|border-radius):\s*(?<value>[^;]+);/g,
+    ),
+  ];
+
+  for (const token of [
+    "--space-1",
+    "--space-2",
+    "--space-3",
+    "--space-4",
+    "--radius-card",
+    "--radius-pill",
+    "--shadow-panel-dark",
+  ]) {
+    assert.match(cssSource, new RegExp(`${token}:`), `${token} token is missing`);
+  }
+
+  assert.ok(layoutDeclarations.length > 0, "layout declarations should be tokenized");
+
+  for (const match of layoutDeclarations) {
+    const { property, value } = match.groups;
+    if (property === "border-radius") {
+      assert.doesNotMatch(value, /\b\d+px\b|50%|999px/, `border-radius must use radius tokens: ${value}`);
+    } else {
+      assert.doesNotMatch(value, /\b\d*\.?\d+rem\b|\b\d+px\b/, `${property} must use spacing tokens: ${value}`);
+    }
+  }
+});
+
 test("project panel keeps the program manager contract", () => {
   const pageSource = readText(new URL("src/app/page.tsx", repoRoot));
   const cssSource = readText(new URL("src/app/globals.css", repoRoot));
