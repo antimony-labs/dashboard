@@ -188,12 +188,12 @@ test("openclaw mobile inputs do not trigger browser zoom", () => {
 
   assert.match(
     cssSource,
-    /@media \(max-width: 640px\)[\s\S]*\.home-openclaw-tray input\s*{[^}]*font-size: 16px/s,
+    /@media \(max-width: 640px\)[\s\S]*\.home-openclaw-tray input\s*{[^}]*font-size: var\(--type-input\)/s,
     "home OpenClaw input must be at least 16px on mobile",
   );
   assert.match(
     cssSource,
-    /@media \(max-width: 640px\)[\s\S]*\.openclaw-compose textarea\s*{[^}]*font-size: 16px/s,
+    /@media \(max-width: 640px\)[\s\S]*\.openclaw-compose textarea\s*{[^}]*font-size: var\(--type-input\)/s,
     "OpenClaw textarea must be at least 16px on mobile",
   );
   assert.match(
@@ -250,6 +250,51 @@ test("iphone pro max cockpit consumes tall viewport without locking", () => {
     cssSource,
     /@media \(min-width: 400px\)[\s\S]*\.home-telemetry-card\s*{[^}]*min-height:/s,
     "telemetry should absorb part of the tall-phone bottom space",
+  );
+});
+
+test("typography uses the dashboard type scale", () => {
+  const cssSource = readText(new URL("src/app/globals.css", repoRoot));
+  const fontSizeValues = [...cssSource.matchAll(/font-size:\s*([^;]+);/g)].map((match) => match[1].trim());
+  const allowedValues = new Set([
+    "inherit",
+    "var(--type-micro)",
+    "var(--type-caption)",
+    "var(--type-label)",
+    "var(--type-small)",
+    "var(--type-body)",
+    "var(--type-title-sm)",
+    "var(--type-title)",
+    "var(--type-title-lg)",
+    "var(--type-display)",
+    "var(--type-input)",
+  ]);
+
+  assert.match(cssSource, /--type-input:\s*16px;/, "input token must stay 16px to avoid iOS zoom");
+  assert.ok(fontSizeValues.length > 0, "CSS should define font sizes through the type scale");
+
+  for (const value of fontSizeValues) {
+    assert.ok(allowedValues.has(value), `font-size must use a type token, found: ${value}`);
+  }
+});
+
+test("home typography uses semantic theme colors", () => {
+  const cssSource = readText(new URL("src/app/globals.css", repoRoot));
+
+  assert.match(
+    cssSource,
+    /\.home-card-hit strong\s*{[^}]*color: var\(--text-primary\)/s,
+    "home card headings must work in both light and dark themes",
+  );
+  assert.match(
+    cssSource,
+    /\.home-infra-metrics strong\s*{[^}]*color: var\(--text-primary\)/s,
+    "home infra metric values must not be hard-coded white",
+  );
+  assert.match(
+    cssSource,
+    /\.openclaw-tray-project strong\s*{[^}]*color: var\(--text-primary\)/s,
+    "OpenClaw tray title must not be hard-coded white",
   );
 });
 
