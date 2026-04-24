@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+/.codex-visual
 
 # next.js
 /.next/

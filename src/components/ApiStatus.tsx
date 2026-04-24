@@ -71,21 +71,7 @@ export default function ApiStatus() {
     <div className="glass-panel api-status-shell">
       <div className="api-status-main">
         <span
-          className={`status-dot ${status === "online" ? "online" : ""}`}
-          style={{
-            backgroundColor:
-              status === "checking"
-                ? "rgba(255,255,255,0.45)"
-                : status === "offline"
-                  ? "var(--danger)"
-                  : undefined,
-            boxShadow:
-              status === "online"
-                ? "0 0 14px rgba(52, 211, 153, 0.6)"
-                : status === "offline"
-                  ? "0 0 14px rgba(239, 68, 68, 0.55)"
-                  : "none",
-          }}
+          className={`status-dot api-status-dot ${status}`}
         />
         <div>
           <div className="api-status-title">

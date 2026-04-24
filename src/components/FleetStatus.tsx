@@ -204,10 +204,7 @@ function HistoryTooltip({
         return (
           <div key={name} className="chart-tooltip-row">
             <span className="chart-tooltip-key">
-              <span
-                className="chart-tooltip-swatch"
-                style={{ background: entry.color ?? "rgba(255,255,255,0.6)" }}
-              />
+              <span className="chart-tooltip-swatch" />
               {name}
             </span>
             <strong>
@@ -225,13 +222,13 @@ function MetricTile({
   value,
   detail,
   progress,
-  accent,
+  variant,
 }: {
   label: string;
   value: string;
   detail: string;
   progress: number;
-  accent: string;
+  variant: "cpu" | "memory" | "disk";
 }) {
   return (
     <div className="metric-tile">
@@ -240,15 +237,7 @@ function MetricTile({
         <span className="metric-value">{value}</span>
       </div>
       <div className="metric-detail">{detail}</div>
-      <div className="metric-track">
-        <div
-          className="metric-fill"
-          style={{
-            width: `${Math.min(Math.max(progress, 0), 100)}%`,
-            background: accent,
-          }}
-        />
-      </div>
+      <progress className={`metric-progress ${variant}`} value={Math.min(Math.max(progress, 0), 100)} max={100} />
     </div>
   );
 }
@@ -397,7 +386,7 @@ export default function FleetStatus() {
                 value={`${decimalFormatter.format(latest.cpu_usage)}%`}
                 detail="instantaneous core pressure"
                 progress={latest.cpu_usage}
-                accent="linear-gradient(90deg, #60a5fa 0%, #22d3ee 100%)"
+                variant="cpu"
               />
               <MetricTile
                 label="Memory Footprint"
@@ -406,7 +395,7 @@ export default function FleetStatus() {
                   latest.ram_total_mb / 1024,
                 )} GB`}
                 progress={memoryPercent}
-                accent="linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%)"
+                variant="memory"
               />
               <MetricTile
                 label="Disk Occupancy"
@@ -415,13 +404,13 @@ export default function FleetStatus() {
                   latest.disk_total_gb,
                 )} GB`}
                 progress={diskPercent}
-                accent="linear-gradient(90deg, #f59e0b 0%, #f97316 100%)"
+                variant="disk"
               />
             </div>
 
             <div className="chart-grid">
               <ChartShell title="CPU" caption="Monotone utilization curve">
-                <ResponsiveContainer width="100%" height={200}>
+                <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
                     <defs>
                       <linearGradient id={`cpu-line-${gradientId}`} x1="0" y1="0" x2="1" y2="0">
@@ -467,7 +456,7 @@ export default function FleetStatus() {
               </ChartShell>
 
               <ChartShell title="Memory" caption="Used memory over time">
-                <ResponsiveContainer width="100%" height={200}>
+                <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
                     <defs>
                       <linearGradient id={`memory-line-${gradientId}`} x1="0" y1="0" x2="1" y2="0">
@@ -512,7 +501,7 @@ export default function FleetStatus() {
               </ChartShell>
 
               <ChartShell title="Load Average" caption="1m, 5m, and 15m smoothing">
-                <ResponsiveContainer width="100%" height={200}>
+                <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
                     <defs>
                       <linearGradient id={`load-1-${gradientId}`} x1="0" y1="0" x2="1" y2="0">
