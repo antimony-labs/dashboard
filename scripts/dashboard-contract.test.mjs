@@ -253,6 +253,19 @@ test("iphone pro max cockpit consumes tall viewport without locking", () => {
   );
 });
 
+test("visual debugging is a repeatable mobile contract", () => {
+  const packageJson = JSON.parse(readText(new URL("package.json", repoRoot)));
+  const visualSource = readText(new URL("scripts/visual-debug.mjs", repoRoot));
+
+  assert.equal(packageJson.scripts["visual:debug"], "node scripts/visual-debug.mjs");
+  assert.match(visualSource, /iPhone 12 Pro Max/, "visual harness must use the target phone viewport");
+  assert.match(visualSource, /antimony-dashboard-theme/, "visual harness must force dashboard theme state");
+  assert.match(visualSource, /latest-report\.json/, "visual harness must emit an LLM-readable report");
+  assert.match(visualSource, /horizontalOverflow/, "visual harness must catch sideways scrolling");
+  assert.match(visualSource, /verticalOverflow/, "visual harness must catch hidden vertical overflow");
+  assert.match(visualSource, /home-openclaw-tray/, "visual harness must guard the OpenClaw action row");
+});
+
 test("typography uses the dashboard type scale", () => {
   const cssSource = readText(new URL("src/app/globals.css", repoRoot));
   const fontSizeValues = [...cssSource.matchAll(/font-size:\s*([^;]+);/g)].map((match) => match[1].trim());
