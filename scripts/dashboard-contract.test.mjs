@@ -330,6 +330,25 @@ test("layout rhythm uses spacing and radius tokens", () => {
   }
 });
 
+test("surface primitives cover repeated dashboard cards", () => {
+  const cssSource = readText(new URL("src/app/globals.css", repoRoot));
+
+  assert.match(cssSource, /\.surface-card,\s*\n:where\(/, "surface card primitive is missing");
+  assert.match(cssSource, /\.surface-row,\s*\n:where\(/, "surface row primitive is missing");
+
+  for (const selector of [
+    ".home-card",
+    ".secret-summary",
+    ".project-program-card",
+    ".infra-card",
+    ".domain-row",
+    ".ops-node",
+    ".metric-tile",
+  ]) {
+    assert.match(cssSource, new RegExp(selector.replace(".", "\\.")), `${selector} must be covered by primitives`);
+  }
+});
+
 test("project panel keeps the program manager contract", () => {
   const pageSource = readText(new URL("src/app/page.tsx", repoRoot));
   const cssSource = readText(new URL("src/app/globals.css", repoRoot));
@@ -407,7 +426,7 @@ test("project management guidelines keep the panel product-led", () => {
 
 test("status indicators render as tags, not bubbles", () => {
   const cssSource = readText(new URL("src/app/globals.css", repoRoot));
-  const stateTag = cssSource.match(/^\.state-pill\s*{(?<body>[^}]+)}/m)?.groups?.body;
+  const stateTag = cssSource.match(/^\.tag,\s*\n\.state-pill\s*{(?<body>[^}]+)}/m)?.groups?.body;
   const launcherTag = cssSource.match(/^\.launcher-state\s*{(?<body>[^}]+)}/m)?.groups?.body;
   const apiTag = cssSource.match(/^\.api-status-badge\s*{(?<body>[^}]+)}/m)?.groups?.body;
 
@@ -419,4 +438,9 @@ test("status indicators render as tags, not bubbles", () => {
     assert.match(block, /border-left-width:\s*[23]px/, `${name} must use a tag accent edge`);
     assert.doesNotMatch(block, /border-radius:\s*999px/, `${name} must not be pill-shaped`);
   }
+
+  assert.match(cssSource, /\.tag-success\s*{[^}]*--tag-bg: var\(--tag-success-bg\)/s);
+  assert.match(cssSource, /\.tag-warning\s*{[^}]*--tag-bg: var\(--tag-warning-bg\)/s);
+  assert.match(cssSource, /\.tag-danger\s*{[^}]*--tag-bg: var\(--tag-danger-bg\)/s);
+  assert.match(cssSource, /\.state-pill\.active[\s\S]*--tag-bg: var\(--tag-success-bg\)/s);
 });

@@ -29,6 +29,22 @@
   --success: #34d399;
   --warning: #fbbf24;
   --danger: #ef4444;
+  --surface-border: rgba(255, 255, 255, 0.08);
+  --surface-border-strong: rgba(255, 255, 255, 0.12);
+  --surface-muted: rgba(255, 255, 255, 0.035);
+  --surface-raised: rgba(8, 8, 8, 0.42);
+  --tag-bg: rgba(226, 232, 240, 0.055);
+  --tag-border: rgba(226, 232, 240, 0.16);
+  --tag-color: var(--text-secondary);
+  --tag-success-bg: rgba(52, 211, 153, 0.075);
+  --tag-success-border: rgba(52, 211, 153, 0.24);
+  --tag-success-color: #b8ffdc;
+  --tag-warning-bg: rgba(251, 191, 36, 0.075);
+  --tag-warning-border: rgba(251, 191, 36, 0.24);
+  --tag-warning-color: #fcd34d;
+  --tag-danger-bg: rgba(239, 68, 68, 0.075);
+  --tag-danger-border: rgba(239, 68, 68, 0.24);
+  --tag-danger-color: #fca5a5;
 
   /* Typography */
   --font-main: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -108,6 +124,22 @@
   --success: #047857;
   --warning: #b7791f;
   --danger: #dc2626;
+  --surface-border: rgba(21, 30, 42, 0.15);
+  --surface-border-strong: rgba(21, 30, 42, 0.18);
+  --surface-muted: rgba(15, 23, 42, 0.055);
+  --surface-raised: rgba(255, 255, 255, 0.9);
+  --tag-bg: rgba(19, 95, 134, 0.1);
+  --tag-border: rgba(19, 95, 134, 0.22);
+  --tag-color: #0f4f70;
+  --tag-success-bg: rgba(4, 120, 87, 0.1);
+  --tag-success-border: rgba(4, 120, 87, 0.24);
+  --tag-success-color: #036047;
+  --tag-warning-bg: rgba(180, 83, 9, 0.1);
+  --tag-warning-border: rgba(180, 83, 9, 0.24);
+  --tag-warning-color: #7c3d08;
+  --tag-danger-bg: rgba(220, 38, 38, 0.1);
+  --tag-danger-border: rgba(220, 38, 38, 0.24);
+  --tag-danger-color: #8f1d1d;
 }
 
 * {
@@ -546,6 +578,76 @@ body::after {
   border-color: var(--border-glow);
   transform: translateY(-2px);
   box-shadow: var(--shadow-card-hover);
+}
+
+/* Component Primitives */
+.surface-card,
+:where(
+  .home-card,
+  .secret-summary,
+  .principle-card,
+  .fact-card,
+  .backup-card,
+  .backup-breakdown-card,
+  .cleanup-card,
+  .layout-target-card,
+  .prune-panel,
+  .prune-row,
+  .project-principle-card,
+  .project-program-card,
+  .project-decision-lane,
+  .project-lane-card,
+  .project-card,
+  .infra-card,
+  .domain-row,
+  .ops-node,
+  .metric-tile,
+  .node-shell
+) {
+  min-width: 0;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-card);
+}
+
+.surface-row,
+:where(.infra-row, .shortcut-row, .check-row, .project-decision-row) {
+  min-width: 0;
+}
+
+.tag,
+.state-pill {
+  display: inline-flex;
+  width: max-content;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--tag-border);
+  border-left-width: 3px;
+  border-radius: var(--radius-control);
+  background: var(--tag-bg);
+  color: var(--tag-color);
+  font-size: var(--type-caption);
+  font-weight: 800;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.tag-success {
+  --tag-bg: var(--tag-success-bg);
+  --tag-border: var(--tag-success-border);
+  --tag-color: var(--tag-success-color);
+}
+
+.tag-warning {
+  --tag-bg: var(--tag-warning-bg);
+  --tag-border: var(--tag-warning-border);
+  --tag-color: var(--tag-warning-color);
+}
+
+.tag-danger {
+  --tag-bg: var(--tag-danger-bg);
+  --tag-border: var(--tag-danger-border);
+  --tag-color: var(--tag-danger-color);
 }
 
 /* Typography Classes */
@@ -2925,23 +3027,6 @@ h1, h2, h3, h4, h5, h6 {
   text-align: right;
 }
 
-.state-pill {
-  display: inline-flex;
-  width: max-content;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-1) var(--space-2);
-  border: 1px solid rgba(226, 232, 240, 0.16);
-  border-left-width: 3px;
-  border-radius: var(--radius-sm);
-  background: rgba(226, 232, 240, 0.055);
-  color: var(--text-secondary);
-  font-size: var(--type-caption);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.075em;
-}
-
 .state-pill.live,
 .state-pill.online,
 .state-pill.public,
@@ -2958,9 +3043,9 @@ h1, h2, h3, h4, h5, h6 {
 .state-pill.local,
 .state-pill.vault,
 .state-pill.safe {
-  background: rgba(52, 211, 153, 0.075);
-  border-color: rgba(52, 211, 153, 0.24);
-  color: #b8ffdc;
+  --tag-bg: var(--tag-success-bg);
+  --tag-border: var(--tag-success-border);
+  --tag-color: var(--tag-success-color);
 }
 
 .state-pill.redirecting,
@@ -2982,9 +3067,9 @@ h1, h2, h3, h4, h5, h6 {
 .state-pill.no-upstream,
 .state-pill.local-app-auth,
 .state-pill.guarded {
-  background: rgba(251, 191, 36, 0.075);
-  border-color: rgba(251, 191, 36, 0.24);
-  color: #fcd34d;
+  --tag-bg: var(--tag-warning-bg);
+  --tag-border: var(--tag-warning-border);
+  --tag-color: var(--tag-warning-color);
 }
 
 .state-pill.blocked,
@@ -2994,9 +3079,9 @@ h1, h2, h3, h4, h5, h6 {
 .state-pill.unresolved,
 .state-pill.fetch-blocked,
 .state-pill.protected {
-  background: rgba(239, 68, 68, 0.075);
-  border-color: rgba(239, 68, 68, 0.24);
-  color: #fca5a5;
+  --tag-bg: var(--tag-danger-bg);
+  --tag-border: var(--tag-danger-border);
+  --tag-color: var(--tag-danger-color);
 }
 
 .check-row .state-pill.active,
